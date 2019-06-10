@@ -132,31 +132,6 @@ component UpSignalDecoder
 	);
 end component;
 
---component RxChannel_ent
---	port ( 
---			 Rxclk       : in  std_logic;        -- Rx Clock
---			 rst         : in  std_logic;        -- system reset
---			 Rx          : in  std_logic;        -- RX input serial data
---			 RxData      : out std_logic_vector(7 downto 0);  -- Rx backedn Data bus
---			 ValidFrame  : out std_logic;        -- Valid Frame
---			 FrameError  : out std_logic;        -- Frame Error (Indicates error in the
---															 -- next byte at the backend
---			 AbortSignal : out std_logic;        -- Abort signal
---			 Readbyte    : in  std_logic;        -- backend read byte
---			 rdy         : out std_logic;        -- backend ready signal
---			 RxEn        : in  std_logic
---		);
---end component;
---
--- COMP_TAG_END ------ End COMPONENT Declaration ------------
-
---constant FIFO_REG_SIZE:integer:=7;
---type FIFO_Type IS ARRAY (FIFO_SIZE-1 DOWNTO 0) OF STD_LOGIC_VECTOR (FRAME_W-1 DOWNTO 0);
---
---signal frame_FIFO_TE, frame_FIFO_LT:FIFO_Type;
---signal frame_FIFO_TE_rd, frame_FIFO_LT_rd, frame_FIFO_TE_wr, frame_FIFO_LT_wr:STD_LOGIC_VECTOR (FIFO_REG_SIZE-1 downto 0);
-
---signal frame_ready_i_val:STD_LOGIC:='0';
 
 type VecArr_bitSigInd IS ARRAY (CHAN_N-1 DOWNTO 0) OF STD_LOGIC_VECTOR(2 downto 0);
 signal bitSigInd : VecArr_bitSigInd;
@@ -168,18 +143,11 @@ subtype STD_LOGIC_VECTOR_CHAN IS std_logic_vector (CHAN_N-1 downto 0);
 type VecArr8 IS ARRAY (CHAN_N-1 DOWNTO 0) OF STD_LOGIC_VECTOR(7 downto 0);
 --type VecArr16 IS ARRAY (CHAN_N-1 DOWNTO 0) OF STD_LOGIC_VECTOR(15 downto 0);
 type VecArrFIFODat IS ARRAY (CHAN_N-1 DOWNTO 0) OF STD_LOGIC_VECTOR(15 downto 0);
-------up decoder sig
---   signal di            : VecArr16;		--std_logic_vector (15 downto 0);
---   signal di_req        : std_logic;
---   signal do            : std_logic_vector (15 downto 0);
---   signal do_valid      : std_logic_vector (CHAN_N-1 downto 0);
+
 
 signal frameSig0,frameSig1      : VecArrFIFODat;		--std_logic_vector (FIFO_W-1 downto 0);
 signal frame_ready   : STD_LOGIC_VECTOR_CHAN;
---   signal reset         : std_logic;
---   signal superFrameNum : std_logic_vector (1 downto 0);
---signal TE            : STD_LOGIC_VECTOR_CHAN;
---signal wren          : STD_LOGIC_VECTOR_CHAN;
+
 
 type VecArrFIFOCnt IS ARRAY (CHAN_N-1 DOWNTO 0) OF STD_LOGIC_VECTOR(FIFO_IP_DATA_CNT_W-1 downto 0);
 -----fifo sig
@@ -197,14 +165,6 @@ signal chanel_active0, chanel_active1 : STD_LOGIC_VECTOR_CHAN;
 --signal chanel_active_cnt0, chanel_active_cnt1 : VecArr16Bit;--STD_LOGIC_VECTOR (CHAN_N-1 DOWNTO 0)(7 downto 0);---B1 B2 actvity cnt
 signal frameOutFF0, frameOutFF1 : VecArrFIFODat;-- STD_LOGIC_VECTOR (CHAN_N-1 DOWNTO 0)(15 downto 0);---B1 B2 last data
 
----------hdlc sig
---		 din => HDLC_Out0(i),
---		 wr_en => HDLC_ready_o0(i),
---		 
---		 rd_en => Dfifo_rd_en0(i),
---		 dout => Dfifo_dout0(i),
---		 full => Dfifo_full0(i),
---		 data_count => Dfifo_data_count0(i)
 type VecArrDFIFOCnt IS ARRAY (CHAN_N-1 DOWNTO 0) OF STD_LOGIC_VECTOR(FIFO_IP_D_DATA_CNT_W-1 downto 0);
 signal HDLC_Out0,HDLC_Out1      : VecArr8;		--std_logic_vector (FIFO_W-1 downto 0);
 signal HDLC_ready_o0, HDLC_ready_o1   : STD_LOGIC_VECTOR_CHAN;
@@ -213,19 +173,6 @@ signal Dfifo_dout0, Dfifo_dout1 : VecArr8;		--STD_LOGIC_VECTOR(FRAME_W-1 DOWNTO 
 signal Dfifo_full0, Dfifo_full1 : STD_LOGIC_VECTOR_CHAN;
 signal Dfifo_data_count0, Dfifo_data_count1 : VecArrDFIFOCnt;		--STD_LOGIC_VECTOR(10 DOWNTO 0);
 
---------------
-----------HDLC SIG
---signal    Rxclk_HDLC       :  STD_LOGIC_VECTOR_CHAN;        -- Rx Clock
---signal    Rx_HDLC          :  STD_LOGIC_VECTOR_CHAN;        -- RX input serial data
---signal    RxData_HDLC      :  VecArr8;  -- Rx backedn Data bus
---signal    ValidFrame_HDLC  :  STD_LOGIC_VECTOR_CHAN;        -- Valid Frame
---signal    FrameError_HDLC  :  STD_LOGIC_VECTOR_CHAN;        -- Frame Error (Indicates error in the
---                                        -- next byte at the backend
---signal    AbortSignal_HDLC :  STD_LOGIC_VECTOR_CHAN;        -- Abort signal
---signal    Readbyte_HDLC    :  STD_LOGIC_VECTOR_CHAN;        -- backend read byte
---signal    rdy_HDLC         :  STD_LOGIC_VECTOR_CHAN;        -- backend ready signal
---signal    RxEn_HDLC        :  STD_LOGIC_VECTOR_CHAN;
------------
 
 --type CMD_TYPE is (CMD_NONE, CMD_GET_FIFO_CNT);
 constant CMD_TEST:STD_LOGIC_VECTOR(CMD_W-1 DOWNTO 0):=conv_std_logic_vector(1, CMD_W);
@@ -261,12 +208,7 @@ signal valPWM:VecArr8;	---STD_LOGIC_VECTOR (7 downto 0):=(others=>'0');
 signal ledStat:STD_LOGIC_VECTOR (15 downto 0):=(others=>'0');
 
 begin
-	------------- Begin Cut here for INSTANTIATION Template ----- INST_TAG
---   GEN_REG: 
---   for I in 0 to 3 generate
---      REGX : REG port map
---        (DIN(I), CLK, RESET, DOUT(I));
---   end generate GEN_REG;
+
 
    frame_FIFO0: 
    for i in 0 to CHAN_N-1 generate
@@ -344,41 +286,6 @@ begin
 		);
    end generate FIFO_IP_D_LT;
 
---	frame_FIFO0 : FIFO_IP
---	PORT MAP (
---	 clk => clk,
---	 srst => reset,
---
---	 din => frameSig(0),
---	 wr_en => frame_ready(0),
---	 
---	 rd_en => fifo_rd_en(0),
---	 dout => fifo_dout(0),
---	 full => fifo_full(0),
---	 overflow => fifo_overflow(0),
---	 empty => fifo_empty(0),
---	 valid => fifo_valid(0),
---	 underflow => fifo_underflow(0),
---	 data_count => fifo_data_count(0)
---	);
---
---	frame_FIFO1 : FIFO_IP
---	PORT MAP (
---	 clk => clk,
---	 srst => reset,
---
---	 din => frameSig(1),
---	 wr_en => frame_ready(1),
---	 
---	 rd_en => fifo_rd_en(1),
---	 dout => fifo_dout(1),
---	 full => fifo_full(1),
---	 overflow => fifo_overflow(1),
---	 empty => fifo_empty(1),
---	 valid => fifo_valid(1),
---	 underflow => fifo_underflow(1),
---	 data_count => fifo_data_count(1)
---	);
 
 	bitSigInd_o <= bitSigInd(0);
 
@@ -415,57 +322,6 @@ begin
 		 );
    end generate UpSignalDecoderIns;
    
---   HDLC_Ins: 
---   for i in 0 to CHAN_N-1 generate
---      HDLC_Ins : RxChannel_ent
---		PORT MAP (
---			 rst=>reset,
---
---			 Rxclk=>Rxclk_HDLC(i),
---			 Rx=>Rx_HDLC(i),
---			 RxData=>RxData_HDLC(i),
---			 ValidFrame=>ValidFrame_HDLC(i),
---			 FrameError=>FrameError_HDLC(i),
---			 AbortSignal=>AbortSignal_HDLC(i),
---			 Readbyte=>Readbyte_HDLC(i),
---			 rdy=>rdy_HDLC(i),
---			 RxEn=>RxEn_HDLC(i)
---		 );
---   end generate HDLC_Ins;
---   
---    UpSignalDecoder0 : UpSignalDecoder
---      port map (
---                clk=>clk,
---                reset=>reset,
---
---					 BIT_H=>BIT_H(0),
---                BIT_L=>BIT_L(0),
---                PWM_VREF=>PWM_VREF(0),
---
---                frameOut(35 downto 0)=>frameSig(0)(35 downto 0),
---                frame_ready_o=>frame_ready(0),
---
-----                superFrameNum_o(1 downto 0)=>superFrameNum(0)(1 downto 0),
---                TE_o=>TE(0)
---					 );
---
---    UpSignalDecoder1 : UpSignalDecoder
---      port map (
---                clk=>clk,
---                reset=>reset,
---
---					 BIT_H=>BIT_H(1),
---                BIT_L=>BIT_L(1),
---                PWM_VREF=>PWM_VREF(1),
---
---                frameOut(35 downto 0)=>frameSig(1)(35 downto 0),
---                frame_ready_o=>frame_ready(1),
---
-----                superFrameNum_o(1 downto 0)=>superFrameNum(0)(1 downto 0),
---                TE_o=>TE(1)
---					 );
-   
-	-- INST_TAG_END ------ End INSTANTIATION Template ------------
 
 	led_o(LED_N-1 downto 0)<=not ledStat(LED_N-1 downto 0);
 
@@ -512,11 +368,9 @@ begin
 --							chanel_active_cnt1(i)<=chanel_active_cnt1(i)+8;
 --						end if;
 					else	---silence
---						if(chanel_active_cnt1(i)<=0) then
+
 							chanel_active1(i)<='0';
---						else
---							chanel_active_cnt1(i)<=chanel_active_cnt1(i)-1;
---						end if;
+
 					end if;
 				end if;
 			end loop;
@@ -629,9 +483,7 @@ begin
 						wren_o<='1';
 
 					when (CMD_GET_FIFO_DATA_B1) =>
-						--di_o<=fifo_dout(7+10 downto 0+10) & fifo_dout(7 downto 0);
-						--di_o<=reverse_any_vector(fifo_dout(7+8+2 downto 0+8+2)) & reverse_any_vector(fifo_dout(7+8+2 downto 0+8+2));
-						--di_o<=reverse_any_vector(fifo_dout(7+8+2+18 downto 0+8+2+10));
+
 						if(cmdData>CHAN_N-1) then
 							di_o<=(others=>'0');
 						else
