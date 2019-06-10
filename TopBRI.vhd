@@ -11,7 +11,7 @@
 -- \   \  /  \ 
 --  \___\/\___\ 
 --
---Command: sch2hdl -sympath D:/PRJ/Levon_BRI/FPGA/FPGA19_MultiComp/ipcore_dir -intstyle ise -family spartan3 -flat -suppress -vhdl D:/PRJ/Levon_BRI/FPGA/FPGA19_MultiComp/TOP_BRI.vhf -w D:/PRJ/Levon_BRI/FPGA/FPGA19_MultiComp/TOP_BRI.sch
+--Command: sch2hdl -sympath  -intstyle ise -family spartan3 -flat -suppress -vhdl 
 --Design Name: TOP_BRI
 --Device: spartan3
 --Purpose:
