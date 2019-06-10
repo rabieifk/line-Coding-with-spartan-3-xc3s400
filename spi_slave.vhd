@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------
--- Author:          Jonny Doin, jdoin@opencores.org
+-- Author:          Farzane Rabiei
 -- 
 -- Create Date:     15:36:20 05/15/2011
 -- Module Name:     SPI_SLAVE - RTL
