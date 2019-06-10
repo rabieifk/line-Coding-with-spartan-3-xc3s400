@@ -67,73 +67,6 @@
 --      do_valid_o  ________________________________/            \_________...  -- 2) 'do_valid_o' strobed for 2 'clk_i' cycles
 --                                                                              --    on the 3rd 'clk_i' rising edge.
 --
---
---      This design was originally targeted to a Spartan-6 platform, synthesized with XST and normal constraints.
---
------------------------------- COPYRIGHT NOTICE -----------------------------------------------------------------------
---                                                                   
---      This file is part of the SPI MASTER/SLAVE INTERFACE project http://opencores.org/project,spi_master_slave                
---
---      Author(s):      Jonny Doin, jdoin@opencores.org, jonnydoin@gmail.com
---                                                                   
---      Copyright (C) 2011 Jonny Doin
---      -----------------------------
---                                                                   
---      This source file may be used and distributed without restriction provided that this copyright statement is not    
---      removed from the file and that any derivative work contains the original copyright notice and the associated 
---      disclaimer. 
---                                                                   
---      This source file is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser 
---      General Public License as published by the Free Software Foundation; either version 2.1 of the License, or 
---      (at your option) any later version.
---                                                                   
---      This source is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
---      warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more  
---      details.
---
---      You should have received a copy of the GNU Lesser General Public License along with this source; if not, download 
---      it from http://www.gnu.org/licenses/lgpl.txt
---                                                                   
------------------------------- REVISION HISTORY -----------------------------------------------------------------------
---
--- 2011/05/15   v0.10.0050  [JD]    created the slave logic, with 2 clock domains, from SPI_MASTER module.
--- 2011/05/15   v0.15.0055  [JD]    fixed logic for starting state when CPHA='1'.
--- 2011/05/17   v0.80.0049  [JD]    added explicit clock synchronization circuitry across clock boundaries.
--- 2011/05/18   v0.95.0050  [JD]    clock generation circuitry, with generators for all-rising-edge clock core.
--- 2011/06/05   v0.96.0053  [JD]    changed async clear to sync resets.
--- 2011/06/07   v0.97.0065  [JD]    added cross-clock buffers, fixed fsm async glitches.
--- 2011/06/09   v0.97.0068  [JD]    reduced control sets (resets, CE, presets) to the absolute minimum to operate, to reduce 
---                                  synthesis LUT overhead in Spartan-6 architecture.
--- 2011/06/11   v0.97.0075  [JD]    redesigned all parallel data interfacing ports, and implemented cross-clock strobe logic.
--- 2011/06/12   v0.97.0079  [JD]    implemented wr_ack and di_req logic for state 0, and eliminated unnecessary registers reset.
--- 2011/06/17   v0.97.0079  [JD]    implemented wr_ack and di_req logic for state 0, and eliminated unnecessary registers reset.
--- 2011/07/16   v1.11.0080  [JD]    verified both spi_master and spi_slave in loopback at 50MHz SPI clock.
--- 2011/07/29   v2.00.0110  [JD]    FIX: CPHA bugs:
---                                      - redesigned core clocking to address all CPOL and CPHA configurations.
---                                      - added CHANGE_EDGE to the FSM register transfer logic, to have MISO change at opposite 
---                                        clock phases from SHIFT_EDGE.
---                                  Removed global signal setting at the FSM, implementing exhaustive explicit signal attributions
---                                  for each state, to avoid reported inference problems in some synthesis engines.
---                                  Streamlined port names and indentation blocks.
--- 2011/08/01   v2.01.0115  [JD]    Adjusted 'do_valid_o' pulse width to be 2 'clk_i', as in the master core.
---                                  Simulated in iSim with the master core for continuous transmission mode.
--- 2011/08/02   v2.02.0120  [JD]    Added mux for MISO at reset state, to output di(N-1) at start. This fixed a bug in first bit.
---                                  The master and slave cores were verified in FPGA with continuous transmission, for all SPI modes.
--- 2011/08/04   v2.02.0121  [JD]    Changed minor comment bugs in the combinatorial fsm logic.
--- 2011/08/08   v2.02.0122  [JD]    FIX: continuous transfer mode bug. When wren_i is not strobed prior to state 1 (last bit), the
---                                  sequencer goes to state 0, and then to state 'N' again. This produces a wrong bit-shift for received
---                                  data. The fix consists in engaging continuous transfer regardless of the user strobing write enable, and
---                                  sequencing from state 1 to N as long as the master clock is present. If the user does not write new 
---                                  data, the last data word is repeated.
--- 2011/08/08   v2.02.0123  [JD]    ISSUE: continuous transfer mode bug, for ignored 'di_req' cycles. Instead of repeating the last data word, 
---                                  the slave will send (others => '0') instead.
--- 2011/08/28   v2.02.0126  [JD]    ISSUE: the miso_o MUX that preloads tx_bit when slave is desselected will glitch for CPHA='1'.
---                                  FIX: added a registered drive for the MUX select that will transfer the tx_reg only after the first tx_reg update.
---
------------------------------------------------------------------------------------------------------------------------
---  TODO
---  ====
---
 -----------------------------------------------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -238,7 +171,6 @@ begin
     --=============================================================================================
     --  GENERICS CONSTRAINTS CHECKING
     --=============================================================================================
-    -- minimum word width is 8 bits
     assert N >= 8
     report "Generic parameter 'N' error: SPI shift register size needs to be 8 bits minimum"
     severity FAILURE;    
@@ -254,15 +186,12 @@ begin
     --=============================================================================================
     --  DATA INPUTS
     --=============================================================================================
-    -- connect rx bit input
     rx_bit_proc : rx_bit_next <= spi_mosi_i;
 
     --=============================================================================================
     --  CROSS-CLOCK PIPELINE TRANSFER LOGIC
     --=============================================================================================
-    -- do_valid_o and di_req_o strobe output logic
-    -- this is a delayed pulse generator with a ripple-transfer FFD pipeline, that generates a 
-    -- fixed-length delayed pulse for the output flags, at the parallel clock domain
+
     out_transfer_proc : process ( clk_i, do_transfer_reg, di_req_reg,
                                   do_valid_A, do_valid_B, do_valid_D, 
                                   di_req_o_A, di_req_o_B, di_req_o_D) is
@@ -434,8 +363,7 @@ begin
     -----------------------------------------------------------------------------------------------
     -- MISO driver process: preload top bit of parallel data to MOSI at reset
     -----------------------------------------------------------------------------------------------
-    -- this is a MUX that selects the combinatorial next tx bit at reset, and the registered tx bit
-    -- at sequential operation. The mux gives us a preload of the first bit, simplifying the shifter logic.
+
     spi_miso_o_proc: process (preload_miso, tx_bit_reg, di_reg) is 
     begin
         if preload_miso = '1' then
