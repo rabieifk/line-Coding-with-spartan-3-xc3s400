@@ -11,7 +11,7 @@
 -- \   \  /  \ 
 --  \___\/\___\ 
 --
---Command: xaw2vhdl-intstyle D:/PRJ/Levon_BRI/FPGA/FPGA38_Lap/ipcore_dir/DCM1.xaw -st DCM1.vhd
+--Command: xaw2vhdl-intstyle -st DCM1.vhd
 --Design Name: DCM1
 --Device: xc3s400-4pq208
 --
