@@ -1,4 +1,4 @@
-# line-Coding-with-spartan-3-xc3s400
+# line-Decoding-with-spartan-3-xc3s400
 **Objective:** Digital line decoding and produce the HDLC packet
 
 
