@@ -1,5 +1,5 @@
-# line-Decoding-with-spartan-3-xc3s400
-**Objective:** Digital line decoding and produce the HDLC packet
+# Digital phone line decoding based on Spartan 3-XC3s400
+**Objective:** Extraction of voice and control data from non-TCP digital telephone lines, and transmission of the extracted data over TCP
 
 
 Using spartan 3 xc3s400 FPGA to decode digital line
